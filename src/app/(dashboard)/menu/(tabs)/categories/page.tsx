@@ -1,18 +1,12 @@
 'use client'
 
 import React, { useState } from 'react'
-import { 
-  Menu, 
-  Plus, 
-  Edit, 
-  Trash2, 
-  GripVertical,
-  X
-} from 'lucide-react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Dropdown, DropdownOption } from '@/components/ui/dropdown'
+
+// Import components
+import CategoriesHeader from '../../components/CategoriesHeader'
+import CategoriesGrid from '../../components/CategoriesGrid'
+import CategoryModal from '../../components/CategoryModal'
+import DeleteConfirmModal from '../../components/DeleteConfirmModal'
 
 // Mock data for menu categories
 const menuCategories = [
@@ -24,20 +18,18 @@ const menuCategories = [
   { id: 6, name: 'Specials', count: 6, color: 'bg-yellow-100 text-yellow-800', position: 6 }
 ]
 
-const colorThemeOptions: DropdownOption[] = [
-  { value: 'bg-blue-100 text-blue-800', label: 'Blue Theme' },
-  { value: 'bg-green-100 text-green-800', label: 'Green Theme' },
-  { value: 'bg-purple-100 text-purple-800', label: 'Purple Theme' },
-  { value: 'bg-orange-100 text-orange-800', label: 'Orange Theme' },
-  { value: 'bg-red-100 text-red-800', label: 'Red Theme' },
-  { value: 'bg-yellow-100 text-yellow-800', label: 'Yellow Theme' }
-]
-
 export default function CategoriesPage() {
   const [showAddModal, setShowAddModal] = useState(false)
   const [editingCategory, setEditingCategory] = useState<any>(null)
   const [draggedItem, setDraggedItem] = useState<any>(null)
   const [selectedColorTheme, setSelectedColorTheme] = useState<string>('')
+  
+  // Delete confirmation state
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<{category: any, isOpen: boolean}>({
+    category: null,
+    isOpen: false
+  })
+  const [isDeleting, setIsDeleting] = useState(false)
 
   const handleAddCategory = () => {
     console.log('Adding new category')
@@ -51,8 +43,35 @@ export default function CategoriesPage() {
     setShowAddModal(true)
   }
 
-  const handleDeleteCategory = (categoryId: number) => {
-    console.log('Deleting category:', categoryId)
+  const handleDeleteCategory = (category: any) => {
+    setShowDeleteConfirm({ category, isOpen: true })
+  }
+
+  const handleConfirmDelete = async () => {
+    if (!showDeleteConfirm.category) return
+    
+    setIsDeleting(true)
+    try {
+      console.log('Deleting category:', showDeleteConfirm.category.id)
+      // Here you would implement the actual delete API call
+      await new Promise(resolve => setTimeout(resolve, 1000)) // Simulate API call
+      
+      // Remove from local state (in real app, this would come from API response)
+      const updatedCategories = menuCategories.filter(cat => cat.id !== showDeleteConfirm.category.id)
+      console.log('Category deleted successfully')
+      
+      // Close modal and reset state
+      setShowDeleteConfirm({ category: null, isOpen: false })
+      setIsDeleting(false)
+    } catch (error) {
+      console.error('Error deleting category:', error)
+      setIsDeleting(false)
+    }
+  }
+
+  const handleCancelDelete = () => {
+    setShowDeleteConfirm({ category: null, isOpen: false })
+    setIsDeleting(false)
   }
 
   const handleDragStart = (e: React.DragEvent, category: any) => {
@@ -78,134 +97,52 @@ export default function CategoriesPage() {
     setSelectedColorTheme(Array.isArray(value) ? value[0] : value)
   }
 
+  const handleModalClose = () => {
+    setShowAddModal(false)
+    setEditingCategory(null)
+    setSelectedColorTheme('')
+  }
+
+  const handleModalSubmit = () => {
+    console.log('Submitting category form')
+    // Here you would implement the actual form submission logic
+    handleModalClose()
+  }
+
   return (
     <div className="space-y-6">
       {/* Page Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-semibold text-gray-900">Menu Categories</h2>
-          <p className="text-gray-600 mt-1">Organize your menu into logical categories</p>
-        </div>
-        <Button onClick={handleAddCategory} className="bg-green-600 hover:bg-green-700">
-          <Plus className="h-4 w-4 mr-2" />
-          Add Category
-        </Button>
-      </div>
+      <CategoriesHeader onAddCategory={handleAddCategory} />
 
       {/* Categories Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {menuCategories.map((category) => (
-          <Card 
-            key={category.id} 
-            className="hover:shadow-xl transition-all duration-300 cursor-move"
-            draggable
-            onDragStart={(e) => handleDragStart(e, category)}
-            onDragOver={handleDragOver}
-            onDrop={(e) => handleDrop(e, category)}
-          >
-            <CardContent className="p-6">
-              <div className="flex items-start justify-between">
-                <div className="flex items-center space-x-3">
-                  <GripVertical className="h-5 w-5 text-gray-400 cursor-move" />
-                  <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${category.color}`}>
-                    <Menu className="h-6 w-6" />
-                  </div>
-                </div>
-                <div className="flex items-center space-x-1">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleEditCategory(category)}
-                    className="p-1 h-8 w-8 text-blue-600 hover:text-blue-800 hover:bg-blue-50"
-                  >
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleDeleteCategory(category.id)}
-                    className="p-1 h-8 w-8 text-red-600 hover:text-red-800 hover:bg-red-50"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-              
-              <div className="mt-4 text-center">
-                <h3 className="text-lg font-semibold text-gray-900">{category.name}</h3>
-                <p className="text-sm text-gray-500">{category.count} items</p>
-                <div className="mt-2 text-xs text-gray-400">Position: {category.position}</div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+      <CategoriesGrid
+        categories={menuCategories}
+        onEdit={handleEditCategory}
+        onDelete={handleDeleteCategory}
+        onDragStart={handleDragStart}
+        onDragOver={handleDragOver}
+        onDrop={handleDrop}
+      />
 
       {/* Add/Edit Modal */}
-      {showAddModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <Card className="w-full max-w-md mx-4 h-[90vh] flex flex-col">
-            <CardHeader className="flex-shrink-0 shadow-sm">
-              <div className="flex items-center justify-between">
-                <CardTitle>{editingCategory ? 'Edit Category' : 'Add New Category'}</CardTitle>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    setShowAddModal(false)
-                    setEditingCategory(null)
-                    setSelectedColorTheme('')
-                  }}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
-              <CardDescription>
-                {editingCategory ? 'Update the category details below' : 'Fill in the details to create a new category'}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="flex-1 overflow-y-auto p-6">
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Category Name</label>
-                  <Input defaultValue={editingCategory?.name || ''} placeholder="Enter category name" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Color Theme</label>
-                  <Dropdown
-                    options={colorThemeOptions}
-                    value={selectedColorTheme}
-                    onChange={handleColorThemeChange}
-                    placeholder="Select a color theme"
-                    searchable
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Position</label>
-                  <Input type="number" defaultValue={editingCategory?.position || ''} placeholder="1" />
-                </div>
-              </div>
-            </CardContent>
-            <div className="flex-shrink-0 shadow-sm bg-gray-50 p-6">
-              <div className="flex justify-end space-x-2">
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setShowAddModal(false)
-                    setEditingCategory(null)
-                    setSelectedColorTheme('')
-                  }}
-                >
-                  Cancel
-                </Button>
-                <Button className="bg-green-600 hover:bg-green-700">
-                  {editingCategory ? 'Update Category' : 'Add Category'}
-                </Button>
-              </div>
-            </div>
-          </Card>
-        </div>
-      )}
+      <CategoryModal
+        isOpen={showAddModal}
+        editingCategory={editingCategory}
+        selectedColorTheme={selectedColorTheme}
+        onClose={handleModalClose}
+        onColorThemeChange={handleColorThemeChange}
+        onSubmit={handleModalSubmit}
+      />
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmModal
+        isOpen={showDeleteConfirm.isOpen}
+        type="category"
+        itemName={showDeleteConfirm.category?.name || ''}
+        onClose={handleCancelDelete}
+        onConfirm={handleConfirmDelete}
+        isDeleting={isDeleting}
+      />
     </div>
   )
 }
