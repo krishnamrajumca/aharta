@@ -1,16 +1,28 @@
 'use client'
 
 import React from 'react'
-import { User, Mail, Lock, Eye, EyeOff, ArrowLeft } from 'lucide-react'
+import { User, Mail, Lock, Eye, EyeOff, ArrowLeft, Building2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { useSignUpForm } from '@/hooks/useSignUpForm'
+import RestaurantConfigStep from './RestaurantConfigStep'
 import Link from 'next/link'
 
 export const SignUpForm: React.FC = () => {
-  const { formData, errors, isLoading, updateField, handleSubmit } = useSignUpForm()
+  const { 
+    currentStep, 
+    formData, 
+    errors, 
+    isLoading, 
+    updateField, 
+    updateRestaurantHours,
+    nextStep,
+    prevStep,
+    handleSubmit 
+  } = useSignUpForm()
+  
   const [showPassword, setShowPassword] = React.useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = React.useState(false)
 
@@ -24,22 +36,17 @@ export const SignUpForm: React.FC = () => {
     console.log('Confirm password visibility toggled:', !showConfirmPassword)
   }
 
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-indigo-50 p-4">
-      <Card className="w-full max-w-md shadow-xl border-0 bg-white/80 backdrop-blur-sm">
-        <CardHeader className="space-y-1 text-center">
-          <div className="mx-auto w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center mb-4">
-            <User className="w-6 h-6 text-white" />
-          </div>
-          <CardTitle className="text-2xl font-bold text-gray-900">
-            Create Account
-          </CardTitle>
-          <CardDescription className="text-gray-600">
-            Join Aharta and start your journey today
-          </CardDescription>
-        </CardHeader>
-        
-        <form onSubmit={handleSubmit}>
+  const renderStepIndicator = () => (
+    <div className="flex items-center justify-center space-x-2 mb-6">
+      <div className={`w-3 h-3 rounded-full ${currentStep >= 1 ? 'bg-green-500' : 'bg-gray-300'}`} />
+      <div className={`w-3 h-3 rounded-full ${currentStep >= 2 ? 'bg-green-500' : 'bg-gray-300'}`} />
+    </div>
+  )
+
+  const renderStepContent = () => {
+    if (currentStep === 1) {
+      return (
+        <>
           <CardContent className="space-y-4">
             {errors.general && (
               <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md">
@@ -217,7 +224,7 @@ export const SignUpForm: React.FC = () => {
                   <span>Creating account...</span>
                 </div>
               ) : (
-                'Create Account'
+                'Continue to Restaurant Setup'
               )}
             </Button>
             
@@ -252,6 +259,51 @@ export const SignUpForm: React.FC = () => {
               </Link>
             </div>
           </CardFooter>
+        </>
+      )
+    } else if (currentStep === 2) {
+      return (
+        <CardContent className="space-y-4">
+          <RestaurantConfigStep
+            formData={formData}
+            errors={errors}
+            updateField={updateField}
+            updateRestaurantHours={updateRestaurantHours}
+            onNext={() => handleSubmit(new Event('submit') as any)}
+            onBack={prevStep}
+          />
+        </CardContent>
+      )
+    }
+  }
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-indigo-50 p-4">
+      <Card className="w-full max-w-2xl shadow-xl border-0 bg-white/80 backdrop-blur-sm">
+        <CardHeader className="space-y-1 text-center">
+          <div className="mx-auto w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center mb-4">
+            {currentStep === 1 ? (
+              <User className="w-6 h-6 text-white" />
+            ) : (
+              <Building2 className="w-6 h-6 text-white" />
+            )}
+          </div>
+          
+          {renderStepIndicator()}
+          
+          <CardTitle className="text-2xl font-bold text-gray-900">
+            {currentStep === 1 ? 'Create Account' : 'Restaurant Setup'}
+          </CardTitle>
+          <CardDescription className="text-gray-600">
+            {currentStep === 1 
+              ? 'Join Aharta and start your journey today' 
+              : 'Configure your restaurant details and operating hours'
+            }
+          </CardDescription>
+        </CardHeader>
+        
+        <form onSubmit={handleSubmit}>
+          {renderStepContent()}
         </form>
       </Card>
     </div>

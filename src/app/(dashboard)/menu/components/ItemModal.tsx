@@ -1,6 +1,6 @@
 'use client'
 
-import React from 'react'
+import React, { useState } from 'react'
 import { X } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -8,11 +8,13 @@ import { Input } from '@/components/ui/input'
 import { Dropdown, DropdownOption } from '@/components/ui/dropdown'
 import ItemTypeSelector from './ItemTypeSelector'
 import ServingConfig from './ServingConfig'
+import AddonCategoryManager from './AddonCategoryManager'
 
 interface Serving {
   id: number
   name: string
   size: string
+  position?: number
   addonCategories: Array<{
     categoryId: number
     name: string
@@ -21,7 +23,16 @@ interface Serving {
     maxSelection: number
     addons: number[]
   }>
-  isExpanded?: boolean // Optional for accordion functionality
+  isExpanded?: boolean
+}
+
+interface AddonCategory {
+  id: number
+  name: string
+  required: boolean
+  minSelection: number
+  maxSelection: number
+  addons: number[]
 }
 
 interface MenuItem {
@@ -40,6 +51,13 @@ interface MenuItem {
   stock: number
   position: number
   servings?: Serving[]
+  addonCategories?: AddonCategory[]
+  availability?: {
+    days: string[]
+    timeFrom: string
+    timeTo: string
+    type: 'always' | 'scheduled' | 'seasonal'
+  }
 }
 
 interface ItemModalProps {
@@ -78,7 +96,59 @@ export default function ItemModal({
   onUpdateServing, 
   onSubmit 
 }: ItemModalProps) {
+  // State for addon categories (simple items)
+  const [addonCategories, setAddonCategories] = useState<AddonCategory[]>(
+    editingItem?.addonCategories || []
+  )
+  
+  // State for availability settings
+  const [availability, setAvailability] = useState({
+    days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+    timeFrom: '00:00',
+    timeTo: '23:59',
+    type: 'always' as 'always' | 'scheduled' | 'seasonal'
+  })
+
   if (!isOpen) return null
+
+  // Handler functions for addon categories
+  const handleAddAddonCategory = () => {
+    const newCategory: AddonCategory = {
+      id: Date.now(),
+      name: '',
+      required: false,
+      minSelection: 0,
+      maxSelection: 3,
+      addons: []
+    }
+    setAddonCategories([...addonCategories, newCategory])
+  }
+
+  const handleUpdateAddonCategory = (categoryId: number, updates: Partial<AddonCategory>) => {
+    setAddonCategories(prev => 
+      prev.map(cat => 
+        cat.id === categoryId ? { ...cat, ...updates } : cat
+      )
+    )
+  }
+
+  const handleDeleteAddonCategory = (categoryId: number) => {
+    setAddonCategories(prev => prev.filter(cat => cat.id !== categoryId))
+  }
+
+  // Handler functions for availability
+  const handleDayToggle = (day: string) => {
+    setAvailability(prev => ({
+      ...prev,
+      days: prev.days.includes(day) 
+        ? prev.days.filter(d => d !== day)
+        : [...prev.days, day]
+    }))
+  }
+
+  const handleAvailabilityTypeChange = (type: 'always' | 'scheduled' | 'seasonal') => {
+    setAvailability(prev => ({ ...prev, type }))
+  }
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -193,6 +263,103 @@ export default function ItemModal({
               placeholder="e.g., Dairy, Gluten (comma separated)" 
             />
           </div>
+
+          {/* Availability Settings */}
+          <div className="border-t border-gray-200 pt-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Availability Settings</h3>
+            
+            {/* Days of Week */}
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 mb-3">Available Days</label>
+              <div className="grid grid-cols-7 gap-2">
+                {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day) => (
+                  <label key={day} className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      checked={availability.days.includes(day)}
+                      onChange={() => handleDayToggle(day)}
+                      className="rounded border-gray-300 text-green-600 focus:ring-green-500"
+                    />
+                    <span className="text-sm text-gray-700">{day}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            {/* Time Availability */}
+            <div className="grid grid-cols-2 gap-4 mb-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Available From</label>
+                <Input 
+                  type="time" 
+                  value={availability.timeFrom}
+                  onChange={(e) => setAvailability(prev => ({ ...prev, timeFrom: e.target.value }))}
+                  className="w-full"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Available Until</label>
+                <Input 
+                  type="time" 
+                  value={availability.timeTo}
+                  onChange={(e) => setAvailability(prev => ({ ...prev, timeTo: e.target.value }))}
+                  className="w-full"
+                />
+              </div>
+            </div>
+
+            {/* Availability Type */}
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 mb-2">Availability Type</label>
+              <div className="space-y-2">
+                <label className="flex items-center space-x-2">
+                  <input
+                    type="radio"
+                    name="availabilityType"
+                    value="always"
+                    checked={availability.type === 'always'}
+                    onChange={() => handleAvailabilityTypeChange('always')}
+                    className="text-green-600 focus:ring-green-500"
+                  />
+                  <span className="text-sm text-gray-700">Always Available (24/7)</span>
+                </label>
+                <label className="flex items-center space-x-2">
+                  <input
+                    type="radio"
+                    name="availabilityType"
+                    value="scheduled"
+                    checked={availability.type === 'scheduled'}
+                    onChange={() => handleAvailabilityTypeChange('scheduled')}
+                    className="text-green-600 focus:ring-green-500"
+                  />
+                  <span className="text-sm text-gray-700">Scheduled Times Only</span>
+                </label>
+                <label className="flex items-center space-x-2">
+                  <input
+                    type="radio"
+                    name="availabilityType"
+                    value="seasonal"
+                    checked={availability.type === 'seasonal'}
+                    onChange={() => handleAvailabilityTypeChange('seasonal')}
+                    className="text-green-600 focus:ring-green-500"
+                  />
+                  <span className="text-sm text-gray-700">Seasonal/Event Based</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          {/* Addon Configuration for Simple Items */}
+          {selectedItemType === 'simple' && (
+            <AddonCategoryManager
+              addonCategories={addonCategories}
+              onAddCategory={handleAddAddonCategory}
+              onUpdateCategory={handleUpdateAddonCategory}
+              onDeleteCategory={handleDeleteAddonCategory}
+              title="Addon Configuration"
+              description="Configure addon options for this simple menu item"
+            />
+          )}
 
           {/* Complex Item Specific Fields */}
           {selectedItemType === 'complex' && (
