@@ -509,8 +509,8 @@ export default function StocksPage() {
       {/* Add/Edit Stock Item Modal */}
       {showAddModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <CardHeader>
+          <Card className="w-full max-w-2xl h-[90vh] flex flex-col">
+            <CardHeader className="flex-shrink-0 shadow-sm">
               <CardTitle className="flex items-center justify-between">
                 {editingItem ? 'Edit Stock Item' : 'Add New Stock Item'}
                 <Button
@@ -523,7 +523,7 @@ export default function StocksPage() {
                 </Button>
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className="flex-1 overflow-y-auto space-y-6 p-6">
               {/* Basic Information */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -597,6 +597,8 @@ export default function StocksPage() {
                 </div>
               </div>
 
+            </CardContent>
+            <div className="flex-shrink-0 shadow-sm bg-gray-50 p-6">
               <div className="flex justify-end space-x-2">
                 <Button
                   variant="outline"
@@ -608,7 +610,7 @@ export default function StocksPage() {
                   {editingItem ? 'Update Item' : 'Add Item'}
                 </Button>
               </div>
-            </CardContent>
+            </div>
           </Card>
         </div>
       )}

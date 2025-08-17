@@ -334,8 +334,8 @@ export default function AddonsPage() {
       {/* Category Management Modal */}
       {showCategoryModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <Card className="w-full max-w-md mx-4">
-            <CardHeader>
+          <Card className="w-full max-w-md mx-4 h-[90vh] flex flex-col">
+            <CardHeader className="flex-shrink-0 shadow-sm">
               <div className="flex items-center justify-between">
                 <CardTitle>{editingCategory ? 'Edit Category' : 'Add New Category'}</CardTitle>
                 <Button
@@ -353,7 +353,7 @@ export default function AddonsPage() {
                 {editingCategory ? 'Update the category details below' : 'Fill in the details to create a new category'}
               </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="flex-1 overflow-y-auto p-6">
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Category Name</label>
@@ -380,22 +380,24 @@ export default function AddonsPage() {
                     placeholder="Select status"
                   />
                 </div>
-                <div className="flex justify-end space-x-2">
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      setShowCategoryModal(false)
-                      setEditingCategory(null)
-                    }}
-                  >
-                    Cancel
-                  </Button>
-                  <Button className="bg-blue-600 hover:bg-blue-700">
-                    {editingCategory ? 'Update Category' : 'Add Category'}
-                  </Button>
-                </div>
               </div>
             </CardContent>
+            <div className="flex-shrink-0 shadow-sm bg-gray-50 p-6">
+              <div className="flex justify-end space-x-2">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setShowCategoryModal(false)
+                    setEditingCategory(null)
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button className="bg-blue-600 hover:bg-blue-700">
+                  {editingCategory ? 'Update Category' : 'Add Category'}
+                </Button>
+              </div>
+            </div>
           </Card>
         </div>
       )}
@@ -403,8 +405,8 @@ export default function AddonsPage() {
       {/* Add/Edit Addon Modal */}
       {showAddModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <Card className="w-full max-w-md mx-4">
-            <CardHeader>
+          <Card className="w-full max-w-md mx-4 h-[90vh] flex flex-col">
+            <CardHeader className="flex-shrink-0 shadow-sm">
               <div className="flex items-center justify-between">
                 <CardTitle>{editingAddon ? 'Edit Addon' : 'Add New Addon'}</CardTitle>
                 <Button
@@ -422,7 +424,7 @@ export default function AddonsPage() {
                 {editingAddon ? 'Update the addon details below' : 'Fill in the details to create a new addon'}
               </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="flex-1 overflow-y-auto p-6">
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Addon Name</label>
@@ -471,22 +473,24 @@ export default function AddonsPage() {
                     placeholder="Select status"
                   />
                 </div>
-                <div className="flex justify-end space-x-2">
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      setShowAddModal(false)
-                      setEditingAddon(null)
-                    }}
-                  >
-                    Cancel
-                  </Button>
-                  <Button className="bg-green-600 hover:bg-green-700">
-                    {editingAddon ? 'Update Addon' : 'Add Addon'}
-                  </Button>
-                </div>
               </div>
             </CardContent>
+                        <div className="flex-shrink-0 shadow-sm bg-gray-50 p-6">
+              <div className="flex justify-end space-x-2">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setShowAddModal(false)
+                    setEditingAddon(null)
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button className="bg-green-600 hover:bg-green-700">
+                  {editingAddon ? 'Update Addon' : 'Add Addon'}
+                </Button>
+              </div>
+            </div>
           </Card>
         </div>
       )}
